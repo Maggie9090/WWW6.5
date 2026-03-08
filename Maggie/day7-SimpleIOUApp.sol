@@ -12,6 +12,8 @@ contract SimpleIOU{
     mapping(address => uint256) public balances;
     
     // Simple debt tracking
+    // 简单的债务追踪
+    // 记录：债务人地址 => 债权人地址 => 欠款金额
     mapping(address => mapping(address => uint256)) public debts; // debtor -> creditor -> amount
     
     constructor() {
