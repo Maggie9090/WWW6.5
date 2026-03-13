@@ -5,57 +5,48 @@ contract AuctionHouse {
     address public owner;
     string public item;
     uint public auctionEndTime;
-    address private highestBidder; 
-    uint private highestBid;       
+    address private highestBidder; // Winner is private, accessible via getWinner
+    uint private highestBid;       // Highest bid is private, accessible via getWinner
     bool public ended;
 
     mapping(address => uint) public bids;
     address[] public bidders;
 
-    
+    // Initialize the auction with an item and a duration
     constructor(string memory _item, uint _biddingTime) {
-        owner = msg.sender;                              //what is msg
+        owner = msg.sender;
         item = _item;
         auctionEndTime = block.timestamp + _biddingTime;
     }
 
-    
-    function bid(uint amount) external {
+    // Allow users to place bids
+    function bid() external payable {
         require(block.timestamp < auctionEndTime, "Auction has already ended.");
-        require(amount > 100, "Bid amount must be greater than 100.");
-        require(amount > bids[msg.sender]*105/100, "New bid must be higher than your current bid * 1.05.");
+        require(msg.value > 0, "Bid amount must be greater than zero.");
+        require(msg.value + bids[msg.sender] > highestBid, "There already is a higher bid.");
 
+        bids[msg.sender] += msg.value;
 
-        
-        if (bids[msg.sender] == 0) {       //why not use owner
+        if (bids[msg.sender] == msg.value) {
             bidders.push(msg.sender);
         }
 
-        bids[msg.sender] = amount;
-
-        
-        if (amount > highestBid) {
-            highestBid = amount;
-            highestBidder = msg.sender;
-        }
+        highestBid = bids[msg.sender];
+        highestBidder = msg.sender;
     }
 
-    
     function endAuction() external {
         require(block.timestamp >= auctionEndTime, "Auction hasn't ended yet.");
         require(!ended, "Auction end already called.");
-
         ended = true;
     }
 
-    
     function getAllBidders() external view returns (address[] memory) {
         return bidders;
     }
 
-    
     function getWinner() external view returns (address, uint) {
         require(ended, "Auction has not ended yet.");
         return (highestBidder, highestBid);
     }
-}    // how to use the contract 
+}
